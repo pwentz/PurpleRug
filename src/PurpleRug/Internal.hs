@@ -53,16 +53,26 @@ emphasize format@(sym, tag) s
 consDiff :: [a] -> [[a]] -> [[a]]
 consDiff x acc = (take (length x - (sum $ map length acc)) x):acc
 
-splitEvery :: String -> String -> [String]
-splitEvery pattern = map (drop $ length pattern) . foldr consDiff [] . filter (isPrefixOf pattern) . tails
+charsRedacted :: String -> String -> [String]
+charsRedacted pattern "" = []
+charsRedacted pattern s
+    | (isPrefixOf pattern s) = [""] ++ charsRedacted pattern (drop (length pattern) s)
+    | otherwise = (take 1 s):(charsRedacted pattern $ tail s)
 
-splitBy :: (a -> Bool) -> [a] -> [[a]]
-splitBy pred = map (dropWhile pred) . foldr consDiff [] . filter (pred . head) . init . tails
+splitEvery :: String -> String -> [String]
+splitEvery pattern "" = []
+splitEvery pattern s = [concat nextChunk] ++ splitEvery pattern rest
+  where chars = charsRedacted pattern s
+        nextChunk = takeWhile (/="") chars
+        rest = drop (length nextChunk + length pattern) s
+
+-- splitBy :: (a -> Bool) -> [a] -> [[a]]
+splitBy pred = filter (/="") . map (dropWhile pred) . foldr consDiff [] . filter (pred . head) . init . tails
 
 wrapListItem s acc = "\n<li>" ++ s ++ "</li>" ++ acc
 
 unorderedLists :: String -> String
-unorderedLists = ("<ul>"++) . foldr wrapListItem "\n</ul>" . map (dropWhileEnd isSpace) . splitEvery "* " . unlines . filter (/="") . lines
+unorderedLists = ("<ul>"++) . foldr wrapListItem "\n</ul>" . map (dropWhileEnd isSpace) . filter (/="") . splitEvery "* "
 
 orderedLists :: String -> String
 orderedLists = ("<ol>"++) . foldr wrapListItem "\n</ol>" . filter (/="") . splitBy pred

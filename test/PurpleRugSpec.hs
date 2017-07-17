@@ -92,16 +92,19 @@ spec = do
     it "converts a combination of both" $ do
       formatWords "I *lo**ve** fi*sh tacos." `shouldBe` "I <em>lo<strong>ve</strong> fi</em>sh tacos."
 
-  -- describe "splitEvery" $ do
-    -- it "splits at every element" $ do
-    --   (splitEvery ". " "1. Fish\n2. Salmon\n3. Eggs") `shouldBe` ["1", "Fish", "2", "Salmon", "3", "Eggs"]
+  describe "splitEvery" $ do
+    it "splits at every element" $ do
+      (splitEvery ". " "1. Fish\n2. Salmon\n3. Eggs") `shouldBe` ["1", "Fish\n2", "Salmon\n3", "Eggs"]
 
---     it "splits at every element" $ do
---       (splitEvery "* " "* Fish\n* Eggs\n* Salmon") `shouldBe` ["", "Fish\n", "Eggs\n", "Salmon"]
+    it "splits at every element" $ do
+      (splitEvery "* " "* Fish\n* Eggs\n* Salmon") `shouldBe` ["", "Fish\n", "Eggs\n", "Salmon"]
 
   describe "splitBy" $ do
     it "splits at every element that given predicate returns true for" $ do
       (splitBy isDigit "1 Fish\n2 Eggs\n3 Salmon") `shouldBe` [" Fish\n", " Eggs\n", " Salmon"]
+
+--     it "can work in other contexts" $ do
+--       (splitBy isUpper "thiS lIne wiLl be SPLIt.") `shouldBe` ["thi", " l", "ne wi", "l be ", "t."]
 
   describe "unorderedLists" $ do
     it "converts unordered lists" $ do
@@ -113,12 +116,12 @@ spec = do
     it "ignores excessive line breaks" $ do
       unorderedLists "* Fish\n\n\n\n\n* Eggs\n\n\n\n\n* Salmon" `shouldBe` "<ul>\n<li>Fish</li>\n<li>Eggs</li>\n<li>Salmon</li>\n</ul>"
 
-  describe "orderedLists" $ do
-    it "converts unordered lists" $ do
-      orderedLists "1. Fish\n2. Eggs\n3. Salmon" `shouldBe` "<ol>\n<li>Fish</li>\n<li>Eggs</li>\n<li>Salmon</li>\n</ol>"
+  -- describe "orderedLists" $ do
+  --   it "converts unordered lists" $ do
+  --     orderedLists "1. Fish\n2. Eggs\n3. Salmon" `shouldBe` "<ol>\n<li>Fish</li>\n<li>Eggs</li>\n<li>Salmon</li>\n</ol>"
 
-    -- it "requires newlines between list items" $ do
-    --   orderedLists "1. Fish 2. Eggs 3. Salmon" `shouldBe` "<ol>\n<li>Fish 2. Eggs 3. Salmon</li>\n</ol>"
+--     it "requires newlines between list items" $ do
+--       orderedLists "1. Fish 2. Eggs 3. Salmon" `shouldBe` "<ol>\n<li>Fish 2. Eggs 3. Salmon</li>\n</ol>"
 
     -- it "ignores list item when no buffer space between '*' and text" $ do
     --   orderedLists "1. Fish\n2.Eggs\n3. Salmon" `shouldBe` "<ol>\n<li>Fish\n*Eggs</li>\n<li>Salmon</li>\n</ol>"
