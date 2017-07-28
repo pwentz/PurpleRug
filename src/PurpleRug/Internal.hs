@@ -1,6 +1,5 @@
 module PurpleRug.Internal
-    ( headers
-    , paragraphs
+    ( paragraphs
     , formatWords
     , unorderedLists
     , orderedLists
@@ -10,15 +9,6 @@ module PurpleRug.Internal
 
 import Data.Char
 import Data.List
-
-headers :: String -> String
-headers x
-    | hSize == 0 || hSize > 6 || head msg /= ' ' = x
-    | otherwise = "<h" ++ show hSize ++ ">" ++ tail msg ++ "</h" ++ show hSize ++ ">"
-  where
-    isPrefix = (== '#')
-    hSize = (length . takeWhile isPrefix) x
-    msg = dropWhile isPrefix x
 
 wrapPTags :: String -> String -> String
 wrapPTags s acc
@@ -31,7 +21,9 @@ replaceWithBreaks pattern = intercalate "\n" . filter (/= pattern) . lines
 
 paragraphs :: String -> String
 paragraphs "" = ""
-paragraphs s = ("<p>" ++) . replaceWithBreaks "<p></p>" . foldr wrapPTags "</p>" . lines $ s
+paragraphs s =
+    ("<p>" ++) . replaceWithBreaks "<p></p>" . foldr wrapPTags "</p>" . lines $
+    s
 
 mapTuple :: (a -> b) -> (a, a) -> (b, b)
 mapTuple f (x, y) = (f x, f y)
@@ -58,7 +50,8 @@ consDiff x acc = (take (length x - (sum $ map length acc)) x) : acc
 charsRedacted :: String -> String -> [String]
 charsRedacted pattern "" = []
 charsRedacted pattern s
-    | (isPrefixOf pattern s) = [""] ++ charsRedacted pattern (drop (length pattern) s)
+    | (isPrefixOf pattern s) =
+        [""] ++ charsRedacted pattern (drop (length pattern) s)
     | otherwise = (take 1 s) : (charsRedacted pattern $ tail s)
 
 splitEvery :: String -> String -> [String]
@@ -71,16 +64,20 @@ splitEvery pattern s = [concat nextChunk] ++ splitEvery pattern rest
 
 -- splitBy :: (a -> Bool) -> [a] -> [[a]]
 splitBy pred =
-    filter (/= "") . map (dropWhile pred) . foldr consDiff [] . filter (pred . head) . init . tails
+    filter (/= "") .
+    map (dropWhile pred) .
+    foldr consDiff [] . filter (pred . head) . init . tails
 
 wrapListItem s acc = "\n<li>" ++ s ++ "</li>" ++ acc
 
 unorderedLists :: String -> String
 unorderedLists =
     ("<ul>" ++) .
-    foldr wrapListItem "\n</ul>" . map (dropWhileEnd isSpace) . filter (/= "") . splitEvery "* "
+    foldr wrapListItem "\n</ul>" .
+    map (dropWhileEnd isSpace) . filter (/= "") . splitEvery "* "
 
 orderedLists :: String -> String
-orderedLists = ("<ol>" ++) . foldr wrapListItem "\n</ol>" . filter (/= "") . splitBy pred
+orderedLists =
+    ("<ol>" ++) . foldr wrapListItem "\n</ol>" . filter (/= "") . splitBy pred
   where
     pred x = isDigit x || x == '.' || isSpace x
