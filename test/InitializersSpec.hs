@@ -6,8 +6,10 @@ module InitializersSpec
 import Test.Hspec
 import Test.QuickCheck hiding (orderedList)
 
+import Initializers.FormattedWords
 import Initializers.Headers
 import Initializers.OrderedList
+import Initializers.Paragraphs
 import Initializers.UnorderedList
 
 main :: IO ()
@@ -63,3 +65,71 @@ spec = do
             headers " ### I love fish tacos" `shouldBe` Nothing
         it "returns Nothing when input is whitespace" $ do
             headers " " `shouldBe` Nothing
+    describe "FormattedWords" $ do
+        it "returns words wrapped in '*' to <em> tags" $ do
+            let (Just res) = formattedWords "I *love* fish tacos."
+            getFormattedWords res `shouldBe` "I <em>love</em> fish tacos."
+        it "converts separately emphasized words" $ do
+            let (Just res) = formattedWords "I *love* fish *tacos*."
+            getFormattedWords res `shouldBe`
+                "I <em>love</em> fish <em>tacos</em>."
+        it "converts multiple words" $ do
+            let (Just res) = formattedWords "I *love fish* tacos."
+            getFormattedWords res `shouldBe` "I <em>love fish</em> tacos."
+        it "converts emphasis mid-word" $ do
+            let (Just res) = formattedWords "I lo*ve fi*sh tacos."
+            getFormattedWords res `shouldBe` "I lo<em>ve fi</em>sh tacos."
+        it "converts words wrapped in '**' to <strong> tags" $ do
+            let (Just res) = formattedWords "I **love** fish tacos."
+            getFormattedWords res `shouldBe`
+                "I <strong>love</strong> fish tacos."
+        it "converts separately strong words" $ do
+            let (Just res) = formattedWords "I **love** fish **tacos**."
+            getFormattedWords res `shouldBe`
+                "I <strong>love</strong> fish <strong>tacos</strong>."
+        it "converts multiple strong words" $ do
+            let (Just res) = formattedWords "I **love fish** tacos."
+            getFormattedWords res `shouldBe`
+                "I <strong>love fish</strong> tacos."
+        it "converts strongs mid-word" $ do
+            let (Just res) = formattedWords "I lo**ve fi**sh tacos."
+            getFormattedWords res `shouldBe`
+                "I lo<strong>ve fi</strong>sh tacos."
+        it "converts em nested inside strong" $ do
+            let (Just res) = formattedWords "**I *love* fish** tacos."
+            getFormattedWords res `shouldBe`
+                "<strong>I <em>love</em> fish</strong> tacos."
+        it "converts strong nested inside em" $ do
+            let (Just res) = formattedWords "*I **love** fish* tacos."
+            getFormattedWords res `shouldBe`
+                "<em>I <strong>love</strong> fish</em> tacos."
+        it "converts a combination of both" $ do
+            let (Just res) = formattedWords "I *lo**ve** fi*sh tacos."
+            getFormattedWords res `shouldBe`
+                "I <em>lo<strong>ve</strong> fi</em>sh tacos."
+        it "returns Nothing when no emphases exist" $ do
+            formattedWords "I love fish tacos." `shouldBe` Nothing
+        it "returns Nothing when passed an empty string" $ do
+            formattedWords "" `shouldBe` Nothing
+    describe "Paragraphs" $ do
+        it "converts single lines to paragraphs" $ do
+            let res = paragraphs "I love fish tacos."
+            getParagraphs res `shouldBe` "<p>I love fish tacos.</p>"
+        it "keeps single line breaks within same p tags" $ do
+            let res = paragraphs "I love fish tacos.\nThey're really great!"
+            getParagraphs res `shouldBe`
+                "<p>I love fish tacos. They're really great!</p>"
+        it "puts double line breaks into new paragraph, separated by line break" $ do
+            let res = paragraphs "I love fish tacos.\n\nThey're really great!"
+            getParagraphs res `shouldBe`
+                "<p>I love fish tacos.</p>\n<p>They're really great!</p>"
+        it "applies any additional line breaks between paragraphs" $ do
+            let res = paragraphs "I love fish tacos.\n\n\nThey're really great!"
+            getParagraphs res `shouldBe`
+                "<p>I love fish tacos.</p>\n<p>They're really great!</p>"
+        it "ignores additional newlines" $ do
+            let res =
+                    paragraphs
+                        "I love fish tacos.\n\n\n\n\n\nThey're really great!"
+            getParagraphs res `shouldBe`
+                "<p>I love fish tacos.</p>\n<p>They're really great!</p>"

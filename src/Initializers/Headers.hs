@@ -3,6 +3,8 @@ module Initializers.Headers
     , getHeaders
     ) where
 
+import Data.List as List
+
 newtype Headers = Headers
     { getHeaders :: String
     } deriving (Show, Eq)
@@ -17,5 +19,5 @@ headers x
                   show hSize ++ ">" ++ tail msg ++ "</h" ++ show hSize ++ ">"))
   where
     isPrefix = (== '#')
-    hSize = (length . takeWhile isPrefix) x
-    msg = dropWhile isPrefix x
+    hSize = (List.length . List.takeWhile isPrefix) x
+    msg = List.dropWhile isPrefix x
