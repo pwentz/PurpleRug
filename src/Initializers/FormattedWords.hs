@@ -12,10 +12,8 @@ newtype FormattedWords = FormattedWords
 mapTuple :: (a -> b) -> (a, a) -> (b, b)
 mapTuple f (x, y) = (f x, f y)
 
-formattedWords :: String -> Maybe FormattedWords
-formattedWords words
-    | words == format words = Nothing
-    | otherwise = Just (FormattedWords (format words))
+formattedWords :: String -> FormattedWords
+formattedWords words = FormattedWords (format words)
   where
     format = emphasize ("**", "strong") . emphasize ("*", "em")
 
