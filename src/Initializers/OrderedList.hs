@@ -28,14 +28,11 @@ appendItems acc@(y:ys) x =
                  else (init acc) ++ [last acc ++ ('\n' : x)]
 
 orderedList :: String -> Maybe OrderedList
-orderedList s
-    | isNumberFormat (splitByDigit s) =
-        let listItems =
-                map ((drop 2) . (dropWhile isDigit)) .
-                foldl appendItems [] . lines $
-                s
-        in (Just (OrderedList listItems))
-    | otherwise = Nothing
+orderedList text =
+    let (listNo, others) = List.span Char.isDigit text
+    in if ((List.length listNo) > 0 && (List.isPrefixOf "." others))
+           then Just (OrderedList (buildList text))
+           else Nothing
 
 formatOrderedList :: OrderedList -> String
 formatOrderedList (OrderedList items) =
@@ -43,3 +40,15 @@ formatOrderedList (OrderedList items) =
     in "<ol>\n" ++ stringItems
   where
     formatOrdered item acc = ("<li>" ++ item ++ "</li>") ++ '\n' : acc
+
+buildList :: String -> [String]
+buildList =
+    (List.filter (/= "")) .
+    (List.map (List.dropWhileEnd Char.isSpace)) . (List.foldr build []) . words
+  where
+    build str [] = [str]
+    build str acc@(otherListItems:rest) =
+        let (listNo, others) = List.span Char.isDigit str
+        in if ((List.length listNo) > 0 && (List.isPrefixOf "." others))
+               then "" : acc
+               else (str ++ (' ' : otherListItems)) : rest

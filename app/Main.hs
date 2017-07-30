@@ -10,10 +10,13 @@ import Initializers.Paragraphs
 import Initializers.UnorderedList
 import System.IO
 
+--
+-- TODO: Apply new lists design to work with current format
+--
 main :: IO ()
 main = do
-    contents <- readFile "./test.txt"
-    print . (List.map parse) . concatWrappedLines . lines $ contents
+    contents <- readFile "./testList.txt"
+    print . concatWrappedLines . lines $ contents
 
 parse :: String -> String
 parse text =
@@ -35,6 +38,9 @@ concatWrappedLines =
     concatWrapped x [] = [x]
     concatWrapped x acc@(y:ys) = (x ++ ' ' : y) : ys
 
+-- applyFormatters :: String -> [String] -> String
+-- applyFormatters "" acc = "" : acc
+-- applyFormatters text =
 parseHeaders :: String -> Maybe String
 parseHeaders line =
     case (headers line) of
