@@ -12,14 +12,6 @@ newtype UnorderedList = UnorderedList
     { getUnorderedList :: [String]
     } deriving (Show, Eq)
 
-appendItems [] x = [x]
-appendItems acc@(y:ys) x =
-    if List.isPrefixOf "* " x
-        then acc ++ [x]
-        else if (length ys == 0)
-                 then [y ++ ('\n' : x)]
-                 else (init acc) ++ [last acc ++ ('\n' : x)]
-
 unorderedList :: String -> Maybe UnorderedList
 unorderedList text@('*':' ':_) = Just (UnorderedList (buildList text))
 unorderedList _ = Nothing

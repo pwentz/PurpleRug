@@ -38,9 +38,10 @@ concatWrappedLines =
     concatWrapped x [] = [x]
     concatWrapped x acc@(y:ys) = (x ++ ' ' : y) : ys
 
--- applyFormatters :: String -> [String] -> String
--- applyFormatters "" acc = "" : acc
--- applyFormatters text =
+applyFormatters :: String -> [String] -> [String]
+applyFormatters "" acc = "" : acc
+applyFormatters text acc = (parse text) : acc
+
 parseHeaders :: String -> Maybe String
 parseHeaders line =
     case (headers line) of
