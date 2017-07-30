@@ -8,15 +8,20 @@ import Initializers.Headers
 import Initializers.OrderedList
 import Initializers.Paragraphs
 import Initializers.UnorderedList
+import System.Environment
 import System.IO
 
---
--- TODO: Apply new lists design to work with current format
---
 main :: IO ()
 main = do
-    contents <- readFile "./testList.txt"
-    print . concatWrappedLines . lines $ contents
+    args <- getArgs
+    contents <- readFile (List.head args)
+    writeFile "./output.html" $
+        concatHtml . (List.map parse) . concatWrappedLines . lines $ contents
+
+concatHtml :: [String] -> String
+concatHtml elts = List.foldr concatWithBreaks "" elts
+  where
+    concatWithBreaks str acc = str ++ ("\n\n" ++ acc)
 
 parse :: String -> String
 parse text =
@@ -37,10 +42,6 @@ concatWrappedLines =
     concatWrapped "" acc = "" : acc
     concatWrapped x [] = [x]
     concatWrapped x acc@(y:ys) = (x ++ ' ' : y) : ys
-
-applyFormatters :: String -> [String] -> [String]
-applyFormatters "" acc = "" : acc
-applyFormatters text acc = (parse text) : acc
 
 parseHeaders :: String -> Maybe String
 parseHeaders line =
