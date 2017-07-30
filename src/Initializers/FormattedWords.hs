@@ -9,9 +9,6 @@ newtype FormattedWords = FormattedWords
     { getFormattedWords :: String
     } deriving (Show, Eq)
 
-mapTuple :: (a -> b) -> (a, a) -> (b, b)
-mapTuple f (x, y) = (f x, f y)
-
 formattedWords :: String -> FormattedWords
 formattedWords words = FormattedWords (format words)
   where
@@ -21,13 +18,18 @@ asTags :: String -> (String, String)
 asTags tag = ("<" ++ tag ++ ">", "</" ++ tag ++ ">")
 
 emphasize :: (String, String) -> String -> String
-emphasize format@(sym, tag) s
-    | h == s = s
+emphasize format@(formatting, tag) text
+    | head == text = text
     | otherwise =
         let (open, close) = asTags tag
-            (h1, t1) = splitAtSym $ replaceFirst h open t
+            (h1, t1) = splitAtFormatting $ replaceFirst head open tail
         in emphasize format $ replaceFirst h1 close t1
   where
-    replaceFirst h pos t = h ++ (pos ++ List.drop (length sym) t)
-    splitAtSym = mapTuple List.concat . List.span (/= sym) . List.group
-    (h, t) = splitAtSym s
+    replaceFirst head tag tail =
+        head ++ (tag ++ List.drop (List.length formatting) tail)
+    splitAtFormatting =
+        mapTuple List.concat . List.break (== formatting) . List.group
+    (head, tail) = splitAtFormatting text
+
+mapTuple :: (a -> b) -> (a, a) -> (b, b)
+mapTuple f (x, y) = (f x, f y)

@@ -15,7 +15,7 @@ main :: IO ()
 main = do
     args <- getArgs
     contents <- readFile (List.head args)
-    writeFile "./output.html" $
+    writeFile (List.head . List.tail $ args) $
         concatHtml . (List.map parse) . concatWrappedLines . lines $ contents
 
 concatHtml :: [String] -> String
