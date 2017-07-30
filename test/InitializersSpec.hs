@@ -18,35 +18,42 @@ main = hspec spec
 spec :: Spec
 spec = do
     describe "UnorderedList" $ do
+        it "buildList" $ do
+            buildList "* Fish * Eggs * Salmon * Cake" `shouldBe`
+                ["Fish", "Eggs", "Salmon", "Cake"]
         it "wraps an array of list items" $ do
-            let (Just res) = unorderedList "* Fish\n* Eggs\n* Salmon\n* Cake"
+            let (Just res) = unorderedList "* Fish * Eggs * Salmon * Cake"
             getUnorderedList res `shouldBe` ["Fish", "Eggs", "Salmon", "Cake"]
+        it "can format list into html elements" $ do
+            let (Just res) = unorderedList "* Fish * Eggs * Salmon * Cake"
+            formatUnorderedList res `shouldBe`
+                "<ul>\n<li>Fish</li>\n<li>Eggs</li>\n<li>Salmon</li>\n<li>Cake</li>\n</ul>"
         it "doesn't create list item for non-formatted items" $ do
-            let (Just res) = unorderedList "* Fish\n*Eggs\n* Salmon"
-            getUnorderedList res `shouldBe` ["Fish\n*Eggs", "Salmon"]
-        it "doesn't create separate list items for inline items" $ do
-            let (Just res) = unorderedList "* Fish * Eggs * Salmon"
-            getUnorderedList res `shouldBe` ["Fish * Eggs * Salmon"]
+            let (Just res) = unorderedList "* Fish *Eggs * Salmon"
+            getUnorderedList res `shouldBe` ["Fish *Eggs", "Salmon"]
         it "returns Nothing if input doesn't lead with '* '" $ do
             unorderedList "Fish\n* Eggs\n* Salmon" `shouldBe` Nothing
     describe "OrderedList" $ do
         it "wraps an array of list items" $ do
-            let (Just res) = orderedList "1. Fish\n2. Eggs\n3. Salmon"
-            getOrderedList res `shouldBe` ["Fish", "Eggs", "Salmon"]
-        it "doesn't create list item for non-formatted items" $ do
-            let (Just res) = orderedList "1. Fish\n2 Eggs\n3. Salmon"
-            getOrderedList res `shouldBe` ["Fish\n2 Eggs", "Salmon"]
-        it "must have no spaces after newline" $ do
-            let (Just res) = orderedList "1. Fish\n 2. Eggs\n3. Salmon"
-            getOrderedList res `shouldBe` ["Fish\n 2. Eggs", "Salmon"]
-        it "doesn't create separate list items for inlined items" $ do
             let (Just res) = orderedList "1. Fish 2. Eggs 3. Salmon"
-            getOrderedList res `shouldBe` ["Fish 2. Eggs 3. Salmon"]
+            getOrderedList res `shouldBe` ["Fish", "Eggs", "Salmon"]
+        it "puts periods on same line even without number" $ do
+            let (Just res) = orderedList "1. Fish . Eggs 3. Salmon"
+            getOrderedList res `shouldBe` ["Fish . Eggs", "Salmon"]
+        it "ignores numbers without periods" $ do
+            let (Just res) = orderedList "1. Fish 123 Eggs 3. Salmon"
+            getOrderedList res `shouldBe` ["Fish 123 Eggs", "Salmon"]
+        it "can format list into html elements" $ do
+            let (Just ol) = orderedList "1. Fish 2. Eggs 3. Salmon"
+            formatOrderedList ol `shouldBe`
+                "<ol>\n<li>Fish</li>\n<li>Eggs</li>\n<li>Salmon</li>\n</ol>"
+        it "doesn't create list item for non-formatted items" $ do
+            let (Just res) = orderedList "1. Fish 2 Eggs 3. Salmon"
+            getOrderedList res `shouldBe` ["Fish 2 Eggs", "Salmon"]
         it "returns Nothing if input doesn't lead with number" $ do
             orderedList "Fish\n2. Eggs\n3. Salmon" `shouldBe` Nothing
         it "does not matter what numbers are" $ do
-            let (Just res) =
-                    orderedList "123293920. Fish\n9. Eggs\n01201. Salmon"
+            let (Just res) = orderedList "123293920. Fish 9. Eggs 01201. Salmon"
             getOrderedList res `shouldBe` ["Fish", "Eggs", "Salmon"]
     describe "Headers" $ do
         it "converts markdown headers to html headers" $ do
@@ -67,50 +74,49 @@ spec = do
             headers " " `shouldBe` Nothing
     describe "FormattedWords" $ do
         it "returns words wrapped in '*' to <em> tags" $ do
-            let (Just res) = formattedWords "I *love* fish tacos."
+            let res = formattedWords "I *love* fish tacos."
             getFormattedWords res `shouldBe` "I <em>love</em> fish tacos."
         it "converts separately emphasized words" $ do
-            let (Just res) = formattedWords "I *love* fish *tacos*."
+            let res = formattedWords "I *love* fish *tacos*."
             getFormattedWords res `shouldBe`
                 "I <em>love</em> fish <em>tacos</em>."
         it "converts multiple words" $ do
-            let (Just res) = formattedWords "I *love fish* tacos."
+            let res = formattedWords "I *love fish* tacos."
             getFormattedWords res `shouldBe` "I <em>love fish</em> tacos."
         it "converts emphasis mid-word" $ do
-            let (Just res) = formattedWords "I lo*ve fi*sh tacos."
+            let res = formattedWords "I lo*ve fi*sh tacos."
             getFormattedWords res `shouldBe` "I lo<em>ve fi</em>sh tacos."
         it "converts words wrapped in '**' to <strong> tags" $ do
-            let (Just res) = formattedWords "I **love** fish tacos."
+            let res = formattedWords "I **love** fish tacos."
             getFormattedWords res `shouldBe`
                 "I <strong>love</strong> fish tacos."
         it "converts separately strong words" $ do
-            let (Just res) = formattedWords "I **love** fish **tacos**."
+            let res = formattedWords "I **love** fish **tacos**."
             getFormattedWords res `shouldBe`
                 "I <strong>love</strong> fish <strong>tacos</strong>."
         it "converts multiple strong words" $ do
-            let (Just res) = formattedWords "I **love fish** tacos."
+            let res = formattedWords "I **love fish** tacos."
             getFormattedWords res `shouldBe`
                 "I <strong>love fish</strong> tacos."
         it "converts strongs mid-word" $ do
-            let (Just res) = formattedWords "I lo**ve fi**sh tacos."
+            let res = formattedWords "I lo**ve fi**sh tacos."
             getFormattedWords res `shouldBe`
                 "I lo<strong>ve fi</strong>sh tacos."
         it "converts em nested inside strong" $ do
-            let (Just res) = formattedWords "**I *love* fish** tacos."
+            let res = formattedWords "**I *love* fish** tacos."
             getFormattedWords res `shouldBe`
                 "<strong>I <em>love</em> fish</strong> tacos."
         it "converts strong nested inside em" $ do
-            let (Just res) = formattedWords "*I **love** fish* tacos."
+            let res = formattedWords "*I **love** fish* tacos."
             getFormattedWords res `shouldBe`
                 "<em>I <strong>love</strong> fish</em> tacos."
         it "converts a combination of both" $ do
-            let (Just res) = formattedWords "I *lo**ve** fi*sh tacos."
+            let res = formattedWords "I *lo**ve** fi*sh tacos."
             getFormattedWords res `shouldBe`
                 "I <em>lo<strong>ve</strong> fi</em>sh tacos."
         it "returns Nothing when no emphases exist" $ do
-            formattedWords "I love fish tacos." `shouldBe` Nothing
-        it "returns Nothing when passed an empty string" $ do
-            formattedWords "" `shouldBe` Nothing
+            let res = formattedWords "I love fish tacos."
+            getFormattedWords res `shouldBe` "I love fish tacos."
     describe "Paragraphs" $ do
         it "converts single lines to paragraphs" $ do
             let res = paragraphs "I love fish tacos."
